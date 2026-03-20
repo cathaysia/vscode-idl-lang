@@ -1,24 +1,36 @@
-import * as Parser from 'web-tree-sitter';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
 let parserInitialized = false;
-let crystalParser: Parser.Parser | null = null;
-let crystalLanguage: Parser.Language | null = null;
+let idlParser: any | null = null;
+let idlLanguage: any | null = null;
+let parserModule: any | null = null;
+
+function loadParserModule(context: vscode.ExtensionContext): any {
+  if (parserModule) {
+    return parserModule;
+  }
+  const modulePath = path.join(context.extensionPath, 'parsers', 'web-tree-sitter.cjs');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  parserModule = require(modulePath);
+  return parserModule;
+}
 
 /**
- * Initialize tree-sitter and load the Crystal language grammar
+ * Initialize tree-sitter and load the IDL language grammar
  */
-export async function initializeParser(context: vscode.ExtensionContext): Promise<Parser.Parser> {
-  if (crystalParser && crystalLanguage) {
-    return crystalParser;
+export async function initializeParser(context: vscode.ExtensionContext): Promise<any> {
+  if (idlParser && idlLanguage) {
+    return idlParser;
   }
+
+  const ts = loadParserModule(context);
 
   if (!parserInitialized) {
     // Initialize tree-sitter WASM runtime
     const wasmPath = path.join(context.extensionPath, 'parsers', 'web-tree-sitter.wasm');
 
-    await Parser.Parser.init({
+    await ts.Parser.init({
       locateFile(_file: string, _folder: string) {
         return wasmPath;
       }
@@ -26,32 +38,39 @@ export async function initializeParser(context: vscode.ExtensionContext): Promis
     parserInitialized = true;
   }
 
-  // Load Crystal language grammar
-  const crystalWasmPath = path.join(context.extensionPath, 'parsers', 'tree-sitter-crystal.wasm');
+  // Load IDL language grammar
+  const idlWasmPath = path.join(context.extensionPath, 'parsers', 'tree-sitter-idl.wasm');
 
-  crystalLanguage = await Parser.Language.load(crystalWasmPath);
+  idlLanguage = await ts.Language.load(idlWasmPath);
 
   // Create parser instance
-  crystalParser = new Parser.Parser();
-  crystalParser.setLanguage(crystalLanguage);
+  idlParser = new ts.Parser();
+  idlParser.setLanguage(idlLanguage);
 
-  return crystalParser;
+  return idlParser;
 }
 
 /**
  * Get the initialized parser (throws if not initialized)
  */
-export function getParser(): Parser.Parser {
-  if (!crystalParser) {
+export function getParser(): any {
+  if (!idlParser) {
     throw new Error('Parser not initialized. Call initializeParser first.');
   }
-  return crystalParser;
+  return idlParser;
+}
+
+export function getParserModule(): any {
+  if (!parserModule) {
+    throw new Error('Parser module not initialized. Call initializeParser first.');
+  }
+  return parserModule;
 }
 
 /**
- * Parse a document with the Crystal parser
+ * Parse a document with the IDL parser
  */
-export function parseDocument(document: vscode.TextDocument): Parser.Tree | null {
+export function parseDocument(document: vscode.TextDocument): any | null {
   const parser = getParser();
   try {
     return parser.parse(document.getText());
@@ -66,9 +85,9 @@ export function parseDocument(document: vscode.TextDocument): Parser.Tree | null
  */
 export function parseDocumentIncremental(
   document: vscode.TextDocument,
-  previousTree: Parser.Tree,
+  previousTree: any,
   changes: readonly vscode.TextDocumentContentChangeEvent[]
-): Parser.Tree | null {
+): any | null {
   const parser = getParser();
 
   try {

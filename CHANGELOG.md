@@ -4,12 +4,12 @@
 
 ### Added
 
-- **Tree-sitter integration**: Enhanced semantic syntax highlighting using tree-sitter-crystal grammar
-  - Context-aware parsing for more accurate highlighting
-  - Better support for Crystal's macro system
-  - Multi-line construct parsing
-  - Incremental parsing for improved performance
-  - Resolves [tree-sitter-crystal#33](https://github.com/crystal-lang-tools/tree-sitter-crystal/issues/33)
+- CI workflow to build and publish the VS Code extension on release tags
+- CI workflow to build `tree-sitter-idl` WASM with `cross` targeting `wasm32-unknown-emscripten`
+
+### Changed
+
+- **BREAKING**: Re-scoped to syntax highlighting only and renamed to `vscode-idl-lang`
 
 ## [0.9.8] - 2025-10-10
 

@@ -1,0 +1,66 @@
+name: Build tree-sitter-idl WASM
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check version alignment
+        run: node scripts/check-versions.js
+
+      - name: Set tree-sitter-idl version
+        id: version
+        run: |
+          echo "version=$(node -p \"require('./package.json').treeSitterIdlVersion\")" >> "$GITHUB_OUTPUT"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-emscripten
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            /tmp/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install cross
+        run: cargo install cross --locked
+
+      - name: Checkout tree-sitter-idl
+        run: |
+          git clone --depth 1 --branch "${{ steps.version.outputs.version }}" https://github.com/cathaysia/tree-sitter-idl /tmp/tree-sitter-idl
+
+      - name: Build WASM
+        working-directory: /tmp/tree-sitter-idl
+        run: |
+          cross build --release --target wasm32-unknown-emscripten
+
+      - name: Locate WASM artifact
+        id: wasm
+        run: |
+          WASM_PATH=$(find /tmp/tree-sitter-idl/target/wasm32-unknown-emscripten/release -maxdepth 2 -name 'tree-sitter-idl.wasm' -print -quit)
+          if [ -z "$WASM_PATH" ]; then
+            echo "tree-sitter-idl.wasm not found"
+            exit 1
+          fi
+          echo "path=$WASM_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Upload WASM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tree-sitter-idl-wasm
+          path: ${{ steps.wasm.outputs.path }}

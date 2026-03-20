@@ -1,0 +1,103 @@
+{
+  "name": "IDL",
+  "scopeName": "source.idl",
+  "fileTypes": [
+    "idl"
+  ],
+  "patterns": [
+    { "include": "#annotations" },
+    { "include": "#comments" },
+    { "include": "#preprocessor" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#keywords" },
+    { "include": "#types" }
+  ],
+  "repository": {
+    "annotations": {
+      "patterns": [
+        {
+          "match": "//@\\s*([A-Za-z_][A-Za-z0-9_]*)(?:\\([^)]*\\))?",
+          "name": "meta.annotation.idl",
+          "captures": {
+            "0": { "name": "meta.annotation.idl" },
+            "1": { "name": "entity.name.function.decorator.idl" }
+          }
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "begin": "/\\*",
+          "end": "\\*/",
+          "name": "comment.block.idl"
+        },
+        {
+          "match": "//(?!@).*$",
+          "name": "comment.line.double-slash.idl"
+        }
+      ]
+    },
+    "preprocessor": {
+      "patterns": [
+        {
+          "match": "^\\s*#\\s*pragma\\b.*$",
+          "name": "keyword.other.directive.idl"
+        },
+        {
+          "match": "^\\s*#\\s*include\\b.*$",
+          "name": "keyword.other.directive.idl"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.idl",
+          "patterns": [
+            { "match": "\\\\.", "name": "constant.character.escape.idl" }
+          ]
+        },
+        {
+          "begin": "'",
+          "end": "'",
+          "name": "string.quoted.single.idl",
+          "patterns": [
+            { "match": "\\\\.", "name": "constant.character.escape.idl" }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "match": "\\b0x[0-9A-Fa-f]+\\b",
+          "name": "constant.numeric.hex.idl"
+        },
+        {
+          "match": "\\b\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?\\b",
+          "name": "constant.numeric.decimal.idl"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "match": "\\b(module|interface|struct|enum|union|typedef|const|attribute|exception|annotation|valuetype|eventtype|component|connector|porttype|home|factory|raises|switch|case|default|readonly|in|out|inout|oneway)\\b",
+          "name": "keyword.control.idl"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "match": "\\b(void|boolean|char|wchar|octet|string|wstring|short|long|float|double|unsigned|signed|any)\\b",
+          "name": "storage.type.builtin.idl"
+        }
+      ]
+    }
+  }
+}

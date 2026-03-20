@@ -46,7 +46,7 @@ export const tokenModifiers = [
 
 /**
  * Mapping from tree-sitter capture names to VSCode semantic token types
- * Based on the highlights.scm from tree-sitter-crystal
+ * Based on the highlights.scm query used for IDL highlighting
  */
 interface TokenMapping {
   type: string;
@@ -65,11 +65,13 @@ export const captureToTokenMap: Map<string, TokenMapping> = new Map([
   ['keyword.repeat', { type: 'keyword' }],
   ['keyword.exception', { type: 'keyword' }],
   ['keyword.modifier', { type: 'keyword' }],
+  ['keyword.directive', { type: 'keyword' }],
 
   // Types
   ['type', { type: 'type' }],
   ['type.builtin', { type: 'type', modifiers: ['defaultLibrary'] }],
   ['type.definition', { type: 'type', modifiers: ['declaration'] }],
+  ['module', { type: 'namespace' }],
 
   // Functions and methods
   ['function', { type: 'function', modifiers: ['declaration'] }],
@@ -111,12 +113,17 @@ export const captureToTokenMap: Map<string, TokenMapping> = new Map([
 
   // Attributes/Annotations
   ['attribute', { type: 'decorator' }],
+  ['attribute.builtin', { type: 'decorator', modifiers: ['defaultLibrary'] }],
+  ['annotation', { type: 'decorator' }],
 
   // Labels (heredoc markers)
   ['label', { type: 'label' }],
 
   // Macros
   ['macro', { type: 'macro' }],
+
+  // Spellcheck hints
+  ['spell', { type: 'comment' }],
 
   // Punctuation (not mapped to semantic tokens in VSCode, but included for completeness)
   ['punctuation.delimiter', { type: 'operator' }],

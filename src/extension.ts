@@ -1,114 +1,25 @@
-import {
-	ExtensionContext,
-	IndentAction,
-	LanguageConfiguration,
-	languages,
-	workspace,
-} from 'vscode';
-import { registerCompletion } from './completion';
-import { registerFormatter } from './format';
-import { registerHover } from './hover';
-import { registerDefinitions } from './definitions';
-import { registerSymbols } from './symbols';
-import { CrystalTestingProvider } from './spec';
-import { registerMacroExpansion } from './macro';
-import { crystalOutputChannel } from './tools';
-import { registerTasks } from './tasks';
-import { existsSync } from 'fs';
-import { LanguageClient, LanguageClientOptions, DocumentSelector, MessageTransports, ServerOptions } from "vscode-languageclient/node"
-import { registerProblems } from './problems';
+import { ExtensionContext } from 'vscode';
 import { initializeParser } from './treesitter/parser';
 import { registerSemanticTokensProvider } from './treesitter/semanticTokens';
 
-const selector: DocumentSelector = [
-	{ language: 'crystal', scheme: 'file' },
-	{ language: 'ecr', scheme: 'file' }
-];
-
-export const crystalConfiguration = <LanguageConfiguration>{
-	comments: { lineComment: '#' },
-	indentationRules: {
-		increaseIndentPattern:
-			/^\s*((begin|(private\s+abstract|private|abstract)\s+(module|class|struct|enum)|class|struct|(private|protected)\s+def|def|fun|macro|else|elsif|ensure|for|if|module|enum|rescue|unless|until|when|while|case)|([^#]*\sdo\b)|([^#]*=\s*(case|if|unless)))\b([^#\{;]|("|'|\/).*\4)*(#.*)?$/,
-		decreaseIndentPattern:
-			/^\s*([}\]]([,)]?\s*(#|$)|\.[a-zA-Z_]\w*\b)|(end|rescue|ensure|else|elsif|when|(?:case[\s\S\n]+)in)\b)/,
-	},
-	wordPattern:
-		/(?:-?(?:0(?:b|o|x))?\d+(?:\.\d+)?(?:_?[iuf]\d+)?)|@{0,2}(?:(?:(?<!:):)?[A-Za-z][^-`~@#%^&()=+[{}|;:'",<>\/.*\]\s\\!?]*[!?]?)/,
-};
-
-let lsp_client: LanguageClient
-
 export async function activate(context: ExtensionContext): Promise<void> {
-	const config = workspace.getConfiguration("crystal-lang");
-	const lsp = config["server"] || process.env.CRYSTAL_LSP_PATH
-
-	// Specs enabled regardless of LSP support
-	if (config["spec-explorer"]) new CrystalTestingProvider();
-
-	// Language configuration independent of LSP
-	context.subscriptions.push(
-		languages.setLanguageConfiguration('crystal', crystalConfiguration)
-	);
-
+	console.log('[IDL] Extension activating');
 	// Initialize tree-sitter for enhanced syntax highlighting
 	try {
-		crystalOutputChannel.appendLine('[Crystal] Initializing tree-sitter parser...');
 		const parser = await initializeParser(context);
 		const language = parser.language;
 
 		if (language) {
-			registerSemanticTokensProvider(context, language);
-			crystalOutputChannel.appendLine('[Crystal] Tree-sitter semantic highlighting enabled');
+			await registerSemanticTokensProvider(context, language);
+			console.log('[IDL] Semantic tokens provider registered');
+		} else {
+			console.warn('[IDL] Parser initialized but language missing');
 		}
 	} catch (error) {
-		crystalOutputChannel.appendLine(`[Crystal] Failed to initialize tree-sitter: ${error}`);
-		console.error('Tree-sitter initialization failed:', error);
-	}
-
-	if (existsSync(lsp)) {
-		crystalOutputChannel.appendLine(`[Crystal] loading lsp ${lsp}`)
-		const server_env = config["server-env"]
-
-		let serverOptions: ServerOptions = {
-			command: lsp,
-			args: []
-		}
-
-		if (server_env) {
-			serverOptions.options = { env: { ...process.env, ...server_env } }
-		}
-
-		let clientOptions: LanguageClientOptions = {
-			documentSelector: selector,
-			synchronize: {
-				configurationSection: "crystal-lang",
-				fileEvents: workspace.createFileSystemWatcher("**/*.cr")
-			},
-			outputChannel: crystalOutputChannel
-		}
-		let lsp_client = new LanguageClient("Crystal Language", serverOptions, clientOptions)
-		lsp_client.start()
-
-		return;
-	} else {
-		registerCompletion(selector, context);
-		registerFormatter(selector, context);
-		registerSymbols(selector, context);
-		registerMacroExpansion();
-		registerTasks(context);
-		if (config["hover"]) registerHover(selector, context);
-		if (config["definitions"]) registerDefinitions(selector, context);
-		if (config["problems"]) registerProblems();
-
-		crystalOutputChannel.appendLine('[Crystal] extension loaded');
+		console.error('IDL tree-sitter initialization failed:', error);
 	}
 }
 
 export function deactivate() {
-	if (lsp_client) {
-		return lsp_client.stop()
-	}
-
 	return;
 }

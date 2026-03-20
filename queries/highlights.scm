@@ -1,328 +1,379 @@
-; Early rules
-; These patterns may be overridden later
+; https://neovim.io/doc/user/treesitter.html#treesitter-highlight-groups
+(comment) @comment @spell
 
 [
-  ","
-  ";"
-  "."
-  ":"
-] @punctuation.delimiter
+  "enum"
+  "struct"
+  "union"
+  "bitmask"
+  "bitset"
+  "@annotation"
+  "exception"
+  "typedef"
+  "home"
+  "typeid"
+  "typeprefix"
+  (interface_kind)
+  (value_kind)
+  "component"
+  "porttype"
+  "connector"
+  "eventtype"
+  "valuetype"
+] @keyword.type
 
-; Keywords
+(import_dcl
+  "import" @keyword.directive)
 
 [
-  "alias"
-  "annotation"
-  "asm"
-  "begin"
-  "break"
-  "case"
-  "do"
-  "end"
-  "ensure"
-  "extend"
-  "in"
-  "include"
-  "next"
-  "of"
-  "select"
-  "then"
-  "verbatim"
-  "when"
+  "module"
+  "attribute"
+  "factory"
+  "manages"
 ] @keyword
 
 [
-  "def"
-  "fun"
-  "macro"
-] @keyword.function
-
-[
-  "class"
-  "enum"
-  "lib"
-  "module"
-  "struct"
-  "type"
-  "union"
-] @keyword.type
-
-"require" @keyword.import
-
-[
-  "return"
-  "yield"
-] @keyword.return
-
-[
-  "if"
-  "else"
-  "elsif"
-  "unless"
-] @keyword.conditional
-
-(conditional
-  [
-    "?"
-    ":"
-  ] @keyword.conditional.ternary)
-
-[
-  "for"
-  "until"
-  "while"
-] @keyword.repeat
-
-"rescue" @keyword.exception
-
-[
-  (private)
-  (protected)
+  "const"
+  "readonly"
   "abstract"
+  "custom"
+  "supports"
+  "provides"
+  "uses"
+  "port"
+  "mirrorport"
+  "emits"
+  "publishes"
+  "consumes"
+  "primarykey"
+  "finder"
 ] @keyword.modifier
 
-(pseudo_constant) @constant.builtin
-
-; literals
-(string
-  "\"" @string)
-
-(string
-  (literal_content) @string)
-
-(string
-  (escape_sequence) @string.escape)
-
-(symbol
-  [
-    ":"
-    ":\""
-    "\""
-  ] @string.special.symbol)
-
-(symbol
-  (literal_content) @string.special.symbol)
-
-(symbol
-  (escape_sequence) @character)
-
-(command
-  "`" @string.special)
-
-(command
-  (literal_content) @string.special)
-
-(command
-  (escape_sequence) @character)
-
-(regex
-  "/" @punctuation.bracket)
-
-(regex
-  (literal_content) @string.regexp)
-
-(regex_modifier) @character.special
-
-(heredoc_body
-  (literal_content) @string)
-
-(heredoc_body
-  (escape_sequence) @string.escape)
+[
+  "switch"
+  "case"
+  "default"
+] @keyword.conditional
 
 [
-  (heredoc_start)
-  (heredoc_end)
-] @label
+  "void"
+  (signed_short_int)
+  (signed_long_int)
+  (signed_longlong_int)
+  (unsigned_tiny_int)
+  (boolean_type)
+  (fixed_pt_const_type)
+  (octet_type)
+  (signed_tiny_int)
+  (unsigned_short_int)
+  (unsigned_long_int)
+  (unsigned_longlong_int)
+  (floating_pt_type)
+  (char_type)
+  (string_type)
+  (any_type)
+  (fixed_pt_type)
+  (sequence_type)
+  (map_type)
+  (object_type)
+  (value_base_type)
+  (wide_string_type)
+  (wide_char_type)
+] @type.builtin
 
-(char
-  "'" @character)
+(escape_sequence) @string.escape
 
-(char
-  (literal_content) @character)
+(scoped_name) @type
 
-(char
-  (escape_sequence) @string.escape)
+(boolean_literal) @boolean
 
-(integer) @number
-
-(float) @number.float
+(integer_literal) @number
 
 [
-  (true)
-  (false)
-] @boolean
+  (floating_pt_literal)
+  (fixed_pt_literal)
+] @number.float
 
-(nil) @constant.builtin
+(char_literal) @character
 
-((comment) @comment
-  ; Set priority so macro expressions in comments are not grayed out
-  (#set! priority 95))
+(wide_character_literal) @character
 
-; Operators and punctuation
-[
-  "="
-  "=>"
-  "->"
-  "&"
-  "*"
-  "**"
-  (operator)
-] @operator
+(string_literal) @string
+
+(wide_string_literal) @string
 
 [
   "("
   ")"
   "["
-  "@["
   "]"
+  "<"
+  ">"
   "{"
   "}"
 ] @punctuation.bracket
 
-([
-  "{{"
-  "}}"
-] @punctuation.bracket
-  ; Set priority so "a{{b}}" is highlighted as brackets, not string content
-  ;                   ^^
-  (#set! priority 105))
-
-(index_call
-  method: (operator) @punctuation.bracket
-  [
-    "]"
-    "]?"
-  ] @punctuation.bracket)
-
-(block
-  "|" @punctuation.bracket)
+[
+  "-"
+  "*"
+  "+"
+  "="
+  "<<"
+  ">>"
+  "%"
+  "~"
+  "|"
+  "^"
+  "&"
+] @operator
 
 [
-  "{%"
-  "%}"
-] @tag.delimiter
+  "::"
+  ";"
+  ":"
+  ","
+] @punctuation.delimiter
 
-(interpolation
-  "#{" @punctuation.special
-  "}" @punctuation.special)
+(readonly_attr_declarator
+  (simple_declarator) @variable.member)
 
-; Types
-[
-  (constant)
-  (generic_instance_type)
-  (generic_type)
-] @type
+(attr_declarator
+  (simple_declarator) @variable.member)
 
-(nilable_constant
-  "?" @type.builtin)
+(annotation_appl
+  "@" @attribute)
 
-(nilable_type
-  "?" @type.builtin)
+(annotation_appl_custom_body
+  (scoped_name) @attribute)
 
-(union_type
-  "|" @operator)
+(op_dcl
+  (identifier) @function.method)
 
-(annotation
-  (constant) @attribute)
+(type_declarator
+  (simple_type_spec) @type)
 
-; Type definitions - highlight the type name on definition
-(class_def
-  name: (constant) @type.definition)
+(type_declarator
+  (any_declarators) @variable.member)
 
-(class_def
-  name: (generic_type
-    (constant) @type.definition))
+(param_dcl
+  (simple_declarator) @variable.parameter)
 
-(module_def
-  name: (constant) @type.definition)
+(raises_expr
+  "raises" @keyword.exception
+  (scoped_name
+    (identifier) @type))
+
+(param_dcl
+  (param_attribute) @keyword.modifier)
+
+(preproc_call
+  directive: (preproc_directive) @keyword.directive
+  argument: (_)? @constant)
+
+(module_dcl
+  (identifier) @module)
 
 (struct_def
-  name: (constant) @type.definition)
+  (identifier) @type
+  parent: (scoped_name)? @type)
 
-(struct_def
-  name: (generic_type
-    (constant) @type.definition))
+(enum_dcl
+  (enumerator
+    (identifier) @constant))
 
-(enum_def
-  name: (constant) @type.definition)
+(annotation_dcl
+  (identifier) @type)
 
-(lib_def
-  name: (constant) @type.definition)
+(struct_forward_dcl
+  (identifier) @type)
+
+(bitmask_dcl
+  (identifier) @type)
+
+(bitset_dcl
+  (identifier) @type
+  (scoped_name)* @type)
+
+(enum_dcl
+  (identifier) @type)
+
+(union_forward_dcl
+  (identifier) @type)
+
+(interface_forward_dcl
+  (identifier) @type)
+
+(interface_header
+  (identifier) @type)
+
+(interface_inheritance_spec
+  (interface_name) @type)
 
 (union_def
-  name: (constant) @type.definition)
+  (identifier) @type
+  (switch_type_spec) @type)
 
-(alias_def
-  name: (constant) @type.definition)
+(except_dcl
+  (identifier) @type)
 
-(annotation_def
-  name: (constant) @type.definition)
+(annotation_member_type) @type
 
-; Constant assignments
-(const_assign
-  name: (constant) @constant)
+(bitfield
+  (bitfield_spec
+    "bitfield" @keyword.modifier
+    (positive_int_const) @number
+    (destination_type)? @type)
+  (identifier)* @variable.member)
 
-; Global variables
-(global_var) @variable.builtin
+(bit_value) @constant
 
-(method_def
-  name: (identifier) @function.method)
+(annotation_member
+  (annotation_member_type) @type
+  (simple_declarator) @property)
 
-(macro_def
-  name: (identifier) @macro)
+(const_dcl
+  (const_type) @type
+  (identifier) @constant)
 
-(abstract_method_def
-  name: (identifier) @function.method)
+(case_label
+  (const_expr) @constant)
 
-(fun_def
-  name: (identifier) @function
-  real_name: (identifier)? @function)
+(simple_type_spec
+  (scoped_name
+    (identifier) @type))
 
-(param
-  name: (identifier) @variable.parameter)
+(annotation_appl_param
+  (identifier) @attribute)
 
-(splat_param
-  name: (identifier) @variable.parameter)
+(home_header
+  (identifier) @type)
 
-(double_splat_param
-  name: (identifier) @variable.parameter)
+(factory_dcl
+  (identifier) @type)
 
-(block_param
-  name: (identifier) @variable.parameter)
+(factory_param_dcl
+  "in" @keyword.modifier)
 
-(fun_param
-  name: (identifier) @variable.parameter)
+(op_oneway_dcl
+  "oneway" @keyword.modifier
+  (identifier) @function.method)
 
-(rescue
-  variable: (identifier) @variable.parameter)
+(in_param_dcl
+  "in" @keyword.modifier)
 
-(macro_var
-  name: (identifier) @variable)
+(context_expr
+  "context" @keyword.modifier)
+
+(get_excep_expr
+  "getraises" @keyword.exception)
+
+(set_excep_expr
+  "setraises" @keyword.exception)
+
+(value_header
+  (identifier) @type)
+
+(value_abs_def
+  (identifier) @type)
+
+(value_forward_dcl
+  (identifier) @type)
+
+(value_box_def
+  (identifier) @type)
+
+(provides_dcl
+  (interface_type) @type
+  (identifier) @variable.member)
+
+(uses_dcl
+  (identifier) @variable.member)
+
+(component_forward_dcl
+  (identifier) @type)
+
+(component_header
+  (identifier) @type)
+
+(porttype_forward_dcl
+  (identifier) @type)
+
+(porttype_def
+  (identifier) @type)
+
+(port_dcl
+  (identifier) @variable.member)
+
+(connector_header
+  (identifier) @type)
+
+(emits_dcl
+  (identifier) @variable.member)
+
+(publishes_dcl
+  (identifier) @variable.member)
+
+(consumes_dcl
+  (identifier) @variable.member)
+
+(event_forward_dcl
+  (identifier) @type)
+
+(event_header
+  (identifier) @type)
+
+(event_abs_def
+  (identifier) @type)
+
+(template_module_dcl
+  (identifier) @type)
+
+(formal_parameter
+  (formal_parameter_type) @type
+  (identifier) @variable.member)
+
+(init_param_dcl
+  "in" @keyword.modifier
+  (simple_declarator) @variable.parameter)
+
+(finder_dcl
+  (identifier) @function.method)
+
+(member
+  identifier: (declarators) @variable.member)
+
+(factory_param_dcl
+  (simple_declarator) @variable.parameter)
+
+(element_spec
+  (declarator) @variable.member)
+
+(preproc_include
+  (keyword_include) @type
+  path: (_) @string)
+
+(system_lib_string
+  "<" @string
+  ">" @string)
+
+(extend_annotation_appl
+  "//@" @attribute
+  (annotation_appl_custom_body))
+
+(extend_annotation_appl
+  "//@" @attribute.builtin
+  (annotation_appl_builtin_body))
 
 [
-  (class_var)
-  (instance_var)
-] @variable.member
+  (autoid_kind)
+  (extensibility_kind)
+  (verbatim_language)
+  (placement_kind)
+  (service_platform)
+  (try_construct_fail_action)
+  (data_representation_mask)
+] @constant
 
-(underscore) @variable.parameter.builtin
+(anno_name) @attribute.builtin
 
-(self) @variable.builtin
-
-(named_tuple
-  (named_expr
-    name: (identifier) @property))
-
-(argument_list
-  (named_expr
-    name: (identifier) @property))
-
-(named_type
-  name: (identifier) @property)
-
-; Method calls (with receiver like obj.method())
-(implicit_object_call
-  method: (identifier) @method.call)
-
-; Function calls (standalone like foo())
-(call
-  method: (identifier) @function.call)
+(range_kind) @attribute.builtin

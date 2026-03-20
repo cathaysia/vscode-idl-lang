@@ -1,12 +1,16 @@
+name: Publish Extension
+
 on:
+  push:
+    tags:
+      - "v*"
   release:
     types:
       - released
   workflow_dispatch:
 
-name: Publish Extension
 jobs:
-  deploy-open-vsx:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,20 +18,20 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - name: Publish to Open VSX Registry
-        uses: HaaLeo/publish-vscode-extension@v1
-        with:
-          pat: ${{ secrets.OPEN_VSX_TOKEN }}
-  deploy-vs-market:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm ci
-      - name: Publish to Visual Studio Marketplace
-        uses: HaaLeo/publish-vscode-extension@v1
-        with:
-          pat: ${{ secrets.VS_MARKETPLACE_TOKEN }}
-          registryUrl: https://marketplace.visualstudio.com
+      - name: Check version alignment
+        run: node scripts/check-versions.js
+      - name: Check VSCE_PAT
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "${VSCE_PAT}" ]; then
+            echo "VSCE_PAT secret is required to publish the extension."
+            exit 1
+          fi
+      - run: npm run vscode:prepublish
+      - name: Package Extension
+        run: npx vsce package
+      - name: Publish Extension
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx vsce publish -p "${VSCE_PAT}"
